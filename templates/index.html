@@ -1,0 +1,519 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --border: #2a2a2a;
+    --accent: #c8f135;
+    --accent2: #f1c135;
+    --text: #f0f0f0;
+    --muted: #666;
+    --tag-bg: #1e1e1e;
+  }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    padding: 28px 36px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .header-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+  }
+  .header-sub {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .badge {
+    margin-left: auto;
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* Layout */
+  .workspace {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    height: calc(100vh - 65px);
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .panel:last-child { border-right: none; }
+
+  .panel-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+  }
+  .panel-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(200,241,53,0.1);
+    border: 1px solid rgba(200,241,53,0.2);
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .panel-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .panel-hint {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  textarea {
+    flex: 1;
+    background: var(--bg);
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    padding: 20px;
+    resize: none;
+    overflow-y: auto;
+  }
+  textarea::placeholder { color: #333; }
+
+  /* Center action bar */
+  .action-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, var(--bg) 60%, transparent);
+    padding: 20px 36px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    z-index: 100;
+  }
+
+  .btn-main {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    background: var(--accent);
+    color: #0d0d0d;
+    border: none;
+    padding: 14px 40px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .btn-main:hover { background: #d9ff45; transform: translateY(-1px); }
+  .btn-main:active { transform: translateY(0); }
+  .btn-main:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .btn-copy {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 14px 22px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-copy:hover { color: var(--text); border-color: #444; }
+
+  /* Output panel */
+  .output-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 20px 100px;
+  }
+
+  .placeholder-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 12px;
+    color: var(--muted);
+    text-align: center;
+    padding: 40px;
+  }
+  .placeholder-icon {
+    font-size: 32px;
+    opacity: 0.3;
+  }
+  .placeholder-text {
+    font-size: 12px;
+    line-height: 1.6;
+    max-width: 200px;
+  }
+
+  /* Loading */
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 16px;
+  }
+  .loading-dots {
+    display: flex; gap: 6px;
+  }
+  .dot {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-8px); opacity: 1; }
+  }
+  .loading-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* Output content */
+  .output-content {
+    font-size: 12px;
+    line-height: 1.75;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  /* Highlights in output */
+  .output-content mark {
+    background: rgba(200,241,53,0.15);
+    color: var(--accent);
+    border-radius: 2px;
+    padding: 0 2px;
+  }
+
+  /* Keyword chips */
+  .keyword-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .kw-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    align-self: center;
+    margin-right: 4px;
+  }
+  .kw-chip {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid rgba(200,241,53,0.25);
+    color: var(--accent);
+    background: rgba(200,241,53,0.06);
+  }
+
+  /* Status bar */
+  .status-bar {
+    padding: 8px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 10px;
+    color: var(--muted);
+    display: flex;
+    gap: 16px;
+    background: var(--surface);
+  }
+  .status-ok { color: var(--accent); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+
+  .char-count {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  /* Error */
+  .error-msg {
+    background: rgba(255,80,80,0.08);
+    border: 1px solid rgba(255,80,80,0.2);
+    color: #ff6b6b;
+    font-size: 11px;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin: 20px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-title">ResumeMatch</span>
+  <span class="header-sub">JD → Resume Tailor</span>
+  <span class="badge">Powered by Claude</span>
+</div>
+
+<div class="workspace">
+  <!-- Panel 1: JD -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-num">1</div>
+      <span class="panel-title">Job Description</span>
+      <span class="panel-hint">paste the JD</span>
+    </div>
+    <textarea id="jd" placeholder="Paste the full job description here...
+
+The more detail you include — responsibilities, requirements, nice-to-haves — the better the tailoring."></textarea>
+    <div class="status-bar">
+      <span id="jd-status">waiting for input</span>
+      <span class="char-count" id="jd-count">0 chars</span>
+    </div>
+  </div>
+
+  <!-- Panel 2: Resume -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-num">2</div>
+      <span class="panel-title">Your Resume</span>
+      <span class="panel-hint">paste current resume</span>
+    </div>
+    <textarea id="resume" placeholder="Paste your current resume here...
+
+Plain text works best. Include your experience, skills, education, and projects."></textarea>
+    <div class="status-bar">
+      <span id="resume-status">waiting for input</span>
+      <span class="char-count" id="resume-count">0 chars</span>
+    </div>
+  </div>
+
+  <!-- Panel 3: Output -->
+  <div class="panel" style="grid-column: 1 / -1; border-right: none; border-top: 1px solid var(--border); max-height: 420px;">
+    <div class="panel-header">
+      <div class="panel-num" style="background: rgba(241,193,53,0.1); border-color: rgba(241,193,53,0.25); color: var(--accent2);">3</div>
+      <span class="panel-title">Tailored Resume</span>
+      <span class="panel-hint" id="match-score"></span>
+    </div>
+    <div id="keyword-strip" class="keyword-strip" style="display:none;">
+      <span class="kw-label">Keywords matched →</span>
+      <span id="kw-chips"></span>
+    </div>
+    <div class="output-area" id="output-area">
+      <div class="placeholder-state" id="placeholder">
+        <div class="placeholder-icon">◎</div>
+        <div class="placeholder-text">Paste your JD and resume above, then hit Tailor Resume</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="action-bar">
+  <button class="btn-copy" id="copy-btn" style="display:none" onclick="copyOutput()">Copy Output</button>
+  <button class="btn-main" id="tailor-btn" onclick="tailorResume()">
+    <span id="btn-label">✦ Tailor Resume</span>
+  </button>
+</div>
+
+<script>
+const jdEl = document.getElementById('jd');
+const resumeEl = document.getElementById('resume');
+const outputArea = document.getElementById('output-area');
+const placeholder = document.getElementById('placeholder');
+const tailorBtn = document.getElementById('tailor-btn');
+const btnLabel = document.getElementById('btn-label');
+const copyBtn = document.getElementById('copy-btn');
+const matchScore = document.getElementById('match-score');
+const keywordStrip = document.getElementById('keyword-strip');
+const kwChips = document.getElementById('kw-chips');
+
+// Char counters
+jdEl.addEventListener('input', () => {
+  const n = jdEl.value.length;
+  document.getElementById('jd-count').textContent = n + ' chars';
+  document.getElementById('jd-status').textContent = n > 50 ? '✓ ready' : 'paste JD above';
+  document.getElementById('jd-status').className = n > 50 ? 'status-ok' : '';
+});
+
+resumeEl.addEventListener('input', () => {
+  const n = resumeEl.value.length;
+  document.getElementById('resume-count').textContent = n + ' chars';
+  document.getElementById('resume-status').textContent = n > 50 ? '✓ ready' : 'paste resume above';
+  document.getElementById('resume-status').className = n > 50 ? 'status-ok' : '';
+});
+
+let lastOutput = '';
+
+async function tailorResume() {
+  const jd = jdEl.value.trim();
+  const resume = resumeEl.value.trim();
+
+  if (!jd || jd.length < 30) {
+    showError('Please paste the job description first (Panel 1).');
+    return;
+  }
+  if (!resume || resume.length < 30) {
+    showError('Please paste your resume first (Panel 2).');
+    return;
+  }
+
+  // Loading state
+  tailorBtn.disabled = true;
+  copyBtn.style.display = 'none';
+  keywordStrip.style.display = 'none';
+  matchScore.textContent = '';
+  btnLabel.textContent = 'Tailoring...';
+
+  outputArea.innerHTML = `
+    <div class="loading-state">
+      <div class="loading-dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <div class="loading-label">Analysing JD · Matching keywords · Rewriting bullets</div>
+    </div>`;
+
+  const systemPrompt = `You are an expert resume writer and career coach. Your job is to tailor a resume to match a specific job description without fabricating any experience.
+
+Rules:
+- Reorder bullet points to prioritise what's most relevant to this JD
+- Rephrase existing bullets using keywords and language from the JD (do not invent new experience)
+- Strengthen weak bullets that are relevant to the role
+- De-emphasise or condense experience clearly unrelated to this role
+- Keep the original structure and sections
+- At the very top, add a short 2-line "Profile" summary targeted at this specific role
+- At the end, add a line: KEYWORDS MATCHED: [comma-separated list of 6-10 key terms from the JD that appear in the tailored resume]
+- Be direct and specific. No filler phrases like "proven track record" or "results-oriented professional"
+- Output plain text only, no markdown, no asterisks`;
+
+  const userPrompt = `JOB DESCRIPTION:
+${jd}
+
+ORIGINAL RESUME:
+${resume}
+
+Please tailor the resume for this specific role. Output the full tailored resume followed by the KEYWORDS MATCHED line.`;
+
+  try {
+    const response = await fetch('/api/tailor', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jd: jd,
+        resume: resume
+      })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    const text = data.content || '';
+
+    if (!text) throw new Error('Empty response');
+
+    // Extract keywords
+    const kwMatch = text.match(/KEYWORDS MATCHED:\s*(.+)/i);
+    const mainText = text.replace(/KEYWORDS MATCHED:.*/is, '').trim();
+    lastOutput = mainText;
+
+    // Render
+    outputArea.innerHTML = `<div class="output-content" id="output-text">${escapeHtml(mainText)}</div>`;
+
+    // Keywords
+    if (kwMatch) {
+      const kws = kwMatch[1].split(',').map(k => k.trim()).filter(Boolean);
+      kwChips.innerHTML = kws.map(k => `<span class="kw-chip">${escapeHtml(k)}</span>`).join('');
+      keywordStrip.style.display = 'flex';
+      matchScore.textContent = `${kws.length} keywords matched`;
+      matchScore.style.color = 'var(--accent)';
+    }
+
+    copyBtn.style.display = 'block';
+    btnLabel.textContent = '✦ Re-tailor';
+
+  } catch (err) {
+    showError('Something went wrong. Check your inputs and try again.\n' + err.message);
+    btnLabel.textContent = '✦ Tailor Resume';
+  } finally {
+    tailorBtn.disabled = false;
+  }
+}
+
+function copyOutput() {
+  if (!lastOutput) return;
+  navigator.clipboard.writeText(lastOutput).then(() => {
+    copyBtn.textContent = 'Copied ✓';
+    setTimeout(() => copyBtn.textContent = 'Copy Output', 2000);
+  });
+}
+
+function showError(msg) {
+  outputArea.innerHTML = `<div class="error-msg">${escapeHtml(msg)}</div>`;
+  tailorBtn.disabled = false;
+  btnLabel.textContent = '✦ Tailor Resume';
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
