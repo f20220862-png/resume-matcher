@@ -53,8 +53,8 @@ ORIGINAL RESUME:
 Please tailor the resume for this specific role. Output the full tailored resume followed by the KEYWORDS MATCHED line."""
 
     try:
-        # Use gemini-1.5-flash as it's fast and perfect for this text task
-        model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=system_prompt)
+        # Use gemini-flash-latest as it's fast and perfect for this text task
+        model = genai.GenerativeModel('gemini-flash-latest', system_instruction=system_prompt)
         response = model.generate_content(user_prompt)
         
         return jsonify({"content": response.text})
