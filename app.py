@@ -31,26 +31,27 @@ def tailor_resume():
     if not jd or not resume:
         return jsonify({"error": "Job description and resume are required."}), 400
 
-    system_prompt = """You are an expert resume writer and career coach. Your job is to tailor a resume to match a specific job description without fabricating any experience.
+    system_prompt = """You are an expert LaTeX resume writer and career coach. Your job is to take a LaTeX resume and tailor it to a specific job description — WITHOUT fabricating any experience.
 
 Rules:
-- Reorder bullet points to prioritise what's most relevant to this JD
-- Rephrase existing bullets using keywords and language from the JD (do not invent new experience)
-- Strengthen weak bullets that are relevant to the role
-- De-emphasise or condense experience clearly unrelated to this role
-- Keep the original structure and sections
-- At the very top, add a short 2-line "Profile" summary targeted at this specific role
-- At the end, add a line: KEYWORDS MATCHED: [comma-separated list of 6-10 key terms from the JD that appear in the tailored resume]
-- Be direct and specific. No filler phrases like "proven track record" or "results-oriented professional"
-- Output plain text only, no markdown, no asterisks"""
+- Return ONLY valid, compilable LaTeX code. No explanations, no markdown, no code fences.
+- Start your response directly with \\documentclass or the first LaTeX command.
+- Keep the exact same LaTeX document structure, packages, and formatting commands as the original.
+- Reorder bullet points (\\item entries) to prioritise what's most relevant to this JD.
+- Rephrase existing \\item bullets using keywords and language from the JD (do not invent new experience).
+- Strengthen weak bullets that are relevant to the role.
+- De-emphasise or condense experience clearly unrelated to this role.
+- Update or add a Profile/Summary section at the top, targeted at this specific role.
+- Be direct and specific. No filler phrases like "proven track record" or "results-oriented professional".
+- The output must be 100% valid LaTeX that compiles without errors."""
 
     user_prompt = f"""JOB DESCRIPTION:
 {jd}
 
-ORIGINAL RESUME:
+ORIGINAL LATEX RESUME:
 {resume}
 
-Please tailor the resume for this specific role. Output the full tailored resume followed by the KEYWORDS MATCHED line."""
+Please tailor the LaTeX resume for this specific role. Output ONLY the complete, compilable LaTeX code."""
 
     try:
         # Use gemini-flash-latest as it's fast and perfect for this text task
